@@ -1,0 +1,72 @@
+body {
+  font-size: 16px;
+  font-family: helvetica neue;
+  font-weight: 200;
+  text-align: center;
+}
+
+.top {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  width: 500px;
+}
+
+
+body, h1, h2, h3, h4, h5 {
+  font-weight: 200;
+}
+
+.footer {
+  margin-top: 40px;
+  color: lightgray;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td, th {
+  padding-left: 7px;
+  padding-right: 7px;
+  text-align: left;
+}
+
+th {
+  color: gray;
+  font-weight: 200;
+  border-bottom: 1px solid lightgray;
+}
+
+.vote-button {
+  color: blue;
+}
+
+span, a {
+  margin-right: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* debug */
+/*
+.cmd {
+  background-color: red;
+  white-space: pre-wrap;
+}
+
+.title {
+  background-color: green;
+}
+
+.subtitle {
+  background-color: lightgreen;
+}
+
+.row {
+  background-color: lightgray;
+}
+
+*/
