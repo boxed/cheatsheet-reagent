@@ -1,8 +1,8 @@
-(ns cheatsheet-reagent.core
-  (:require-macros [cljs.core.match.macros :refer [match]])
-  (:require [reagent.core :as reagent :refer [atom]]
-            [cljs.core.match]
-            [instar.core :refer [transform]]))
+(ns cheatsheet-reagent.parse
+  (:require [clojure.core.match :refer [match]]
+            [clojure.pprint :only (pprint)]
+            [clojure.java.io :as io]
+            [fipp.edn :refer (pprint) :rename {pprint fipp}]))
 
 (def cheatsheet-structure
      [:title {:latex "Clojure Cheat Sheet (Clojure 1.3 - 1.5, sheet v12)"
@@ -797,7 +797,32 @@
       ])
 
 
-(enable-console-print!)
+;; - Debug -
+
+(defmacro local-bindings
+  "Produces a map of the names of local bindings to their values."
+  []
+  (let [symbols (map key @clojure.lang.Compiler/LOCAL_ENV)]
+    (zipmap (map (fn [sym] `(quote ~sym)) symbols) symbols)))
+
+(declare ^:dynamic *locals*)
+(defn eval-with-locals
+  "Evals a form with given locals. The locals should be a map of symbols to
+values."
+  [locals form]
+  (binding [*locals* locals]
+    (eval
+     `(let ~(vec (mapcat #(list % `(*locals* '~%)) (keys locals)))
+        ~form))))
+
+(defmacro debug-repl
+  "Starts a REPL with the local bindings available."
+  []
+  `(clojure.main/repl
+    :prompt #(print "dr => ")
+    :eval (partial eval-with-locals (local-bindings))))
+
+;; - -
 
 (defn sanitize-text [t]
   (-> t
@@ -816,18 +841,22 @@
           {:url url, :text (sanitize-text (apply str [text2 colon]))}
           {:url url, :text (sanitize-text (apply str [text1 "(" text2 ")"]))})))))
 
-(def parse-cmds)
-
 (defn parse-cmd [cmd]
-  (match cmd
-         {:html html} (parse-link html)
-         [:common-prefix prefix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [prefix c]))))
-         [:common-suffix suffix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [c suffix]))))
-         [:common-prefix-suffix prefix suffix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [prefix c suffix]))))
-         :else (let [m (meta (ns-resolve *ns* cmd))]
-                 {:text (:name m)
-                  :meta m})
-       ))
+  (cond
+   (map? cmd) cmd
+   (string? cmd) {:text cmd}
+   :else
+    (match cmd
+           {:html html} (parse-link html)
+           [:common-prefix prefix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [prefix c]))))
+           [:common-suffix suffix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [c suffix]))))
+           [:common-prefix-suffix prefix suffix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [prefix c suffix]))))
+           :else (do
+                   (assert (symbol? cmd))
+                   (let [m (meta (ns-resolve *ns* cmd))]
+                     {:text (:name m)
+                      :meta m}))
+         )))
 
 (defn parse-cmds [cmds]
   (if (string? cmds)
@@ -948,60 +977,8 @@
         {:title title
          :boxes (map parse-box [b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15 b16 b17 b18 b19])}))
 
-(def state (atom {:search-text ""}))
-
-(defn section-component [cmd]
-  (if (and (:text cmd) (:url cmd))
-    [:a.section {:href (:url cmd)} (:text cmd)]
-    [:span.section (:text cmd)])
-  [:div.hidden])
-
-(defn show-cmd? [cmd]
-  (if (nil? cmd)
-    false
-    (or (= (:search-text @state) "") (not= (.indexOf (:text cmd) (:search-text @state)) -1))))
-
-(defn show-row? [row]
-  (let [{title :title cmds :cmds} row]
-    (not= 0 (count (filter show-cmd? cmds)))))
-
-(defn show-section? [section]
-  (let [[_ table] section]
-    (not= 0 (count (filter show-row? table)))))
-
-(defn show-box? [box]
-  (not= 0 (count (filter show-section? box))))
-
-(defn cmd-component [cmd]
-  (if (:url cmd)
-    [:a.cmd {:href (:url cmd)} (:text cmd)]
-    [:span.cmd (:text cmd)]))
-
-
-(defn cmds-component [cmds]
-  [:div
-    (for [cmd (doall (filter show-cmd? cmds))]
-      ^{:key (hash cmd)} [cmd-component cmd])])
-
-(defn root []
-  (let [cc (parse-cheatsheet)]
-    [:div.top
-     [:input {:onChange #(swap! state assoc :search-text (-> %1 .-target .-value))}]
-     [:h1 (:title cc)]
-     (for [box (doall (filter show-box? (:boxes cc)))]
-       ^{:key (hash box)} [:div.box
-                           (for [[[title subtitle cmds-one-line] table] (doall (filter show-section? box))]
-                            ^{:key (hash table)} [:div.section
-                             [:h2.title [section-component title]]
-                             [:h3.subtitle [section-component subtitle]]
-                             [cmds-component cmds-one-line]
-                             (for [{title :title cmds :cmds} (doall (filter show-row? table))]
-                               ^{:key (hash cmds)} [:div.row
-                                [:h4 (:text title)]
-                                [cmds-component cmds]])
-                             ])
-                          ])]))
-
-(defn ^:export run []
-  (reagent/render-component [root]
-                            (.-body js/document)))
+(defn -main []
+  (let [result (parse-cheatsheet)]
+    (spit "src/cheatsheet_reagent/cheatsheet.clj" (with-out-str (fipp result)))
+    (io/copy (io/file "src/cheatsheet_reagent/cheatsheet.clj") (io/file "src/cheatsheet_reagent/cheatsheet.cljs"))
+    ))
