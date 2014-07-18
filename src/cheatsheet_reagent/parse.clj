@@ -2,6 +2,7 @@
   (:require [clojure.core.match :refer [match]]
             [clojure.pprint :only (pprint)]
             [clojure.java.io :as io]
+            [instar.core :refer [transform]]
             [fipp.edn :refer (pprint) :rename {pprint fipp}]))
 
 (def cheatsheet-structure
@@ -843,7 +844,6 @@ values."
 
 (defn parse-cmd [cmd]
   (cond
-   (map? cmd) cmd
    (string? cmd) {:text cmd}
    :else
     (match cmd
@@ -851,11 +851,22 @@ values."
            [:common-prefix prefix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [prefix c]))))
            [:common-suffix suffix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [c suffix]))))
            [:common-prefix-suffix prefix suffix & cmds] (for [c cmds] (parse-cmd (symbol (apply str [prefix c suffix]))))
-           :else (do
-                   (assert (symbol? cmd))
-                   (let [m (meta (ns-resolve *ns* cmd))]
-                     {:text (:name m)
-                      :meta m}))
+           :else (if (map? cmd)
+                   cmd
+                   (do
+                     (assert (symbol? cmd))
+                     (let [m (meta (ns-resolve *ns* cmd))]
+                       (if (nil? m)
+                         {:text (str cmd)}
+                         {:text (str (:name m))
+;;                           :meta (-> m
+;;                                     (dissoc :inline)
+;;                                     (dissoc :name)
+;;                                     (dissoc :inline-arities)
+;;                                     (dissoc :tag)
+;;                                     (transform [:ns] str
+;;                                                [:arglists] str))
+                          }))))
          )))
 
 (defn parse-cmds [cmds]
@@ -979,6 +990,6 @@ values."
 
 (defn -main []
   (let [result (parse-cheatsheet)]
-    (spit "src/cheatsheet_reagent/cheatsheet.clj" (with-out-str (fipp result)))
-    (io/copy (io/file "src/cheatsheet_reagent/cheatsheet.clj") (io/file "src/cheatsheet_reagent/cheatsheet.cljs"))
-    ))
+    (spit "resources/cheatsheet.edn" (with-out-str (fipp result)))
+;    (spit "resources/cheatsheet.edn" (pr-str result))
+))

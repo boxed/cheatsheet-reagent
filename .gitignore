@@ -9,3 +9,5 @@ pom.xml.asc
 /.nrepl-port
 /resources/client/
 /resources/client.js
+cheatsheet_reagent.iml
+/resources/cheatsheet.edn

@@ -8,6 +8,11 @@
                  [reagent "0.4.2"]
                  [org.clojure/core.match "0.2.1"]
                  [instar "1.0.4"]
+                 [fipp "0.4.3"]
+                 [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]
+                 [cljs-ajax "0.2.6"]
+                 [ring/ring-jetty-adapter "1.1.6"]
+                 [compojure "1.1.8"]
                  ]
 
   :plugins [[lein-cljsbuild "1.0.2"]]
@@ -33,4 +38,6 @@
                                  :output-to "resources/client.js"
                                  ;:source-map "resources/client.js.map"
                                  :pretty-print true}}}}
+;  :main ^:skip-aot cheatsheet-reagent.parse
+  :main ^:skip-aot cheatsheet-reagent.core
   )
