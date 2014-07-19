@@ -5,6 +5,7 @@
    [compojure.core :refer [defroutes GET POST]]
    [compojure.handler :as handler]
    [ring.util.response :as resp]
+   [cheatsheet-reagent.parse :refer [generate-edn]]
    ))
 
 
@@ -16,4 +17,6 @@
   (route/not-found "<h1>Page not found</h1>"))
 
 (defn -main [web-port]
-  (jetty/run-jetty (handler/site app) {:port (Integer. web-port) :join? false}))
+  (if (= "generate-edn" web-port)
+    (generate-edn)
+    (jetty/run-jetty (handler/site app) {:port (Integer. web-port) :join? false})))

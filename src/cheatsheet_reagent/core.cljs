@@ -8,10 +8,9 @@
 (def state (atom {:search-text ""}))
 
 (defn section-component [cmd]
-  (if (and (:text cmd) (:url cmd))
+  (if (and (contains? cmd :text) (contains? cmd :url))
     [:a.section {:href (:url cmd)} (:text cmd)]
-    [:span.section (:text cmd)])
-  [:div.hidden])
+    [:span.section (:text cmd)]))
 
 (defn show-cmd? [cmd]
   (if (nil? cmd)
@@ -34,31 +33,41 @@
     [:a.cmd {:href (:url cmd)} (:text cmd)]
     [:span.cmd (:text cmd)]))
 
-(defn cmds-component [cmds]
-  [:div
+(defn cmds-component [cmds colSpan]
+  [:td {:colSpan colSpan}
     (doall (for [cmd (doall (filter show-cmd? cmds))]
       ^{:key (hash cmd)} [cmd-component cmd]))])
 
 (defn box-component [box]
   [:div.box
-   (doall (for [[[title subtitle cmds-one-line] table] (doall (filter show-section? box))]
-    ^{:key (hash table)} [:div.section
-     [:h2.title [section-component title]]
-     [:h3.subtitle [section-component subtitle]]
-     [cmds-component cmds-one-line]
-     (doall (for [{title :title cmds :cmds} (doall (filter show-row? table))]
-       ^{:key (hash cmds)} [:div.row
-        [:h4 (:text title)]
-        [cmds-component cmds]]))
-     ]))
-  ])
+   (doall (for [[[title subtitle cmds-one-line] table] (filter show-section? box)]
+            ^{:key (hash table)}
+            [:div.section
+             (if (not (nil? title))
+               [:h2.title [section-component title]])
+
+             (if (not (nil? subtitle))
+               [:h3.subtitle [section-component subtitle]])
+
+             [:table
+              [:tbody
+               (if (not (nil? cmds-one-line))
+                 [:tr.cmds-one-line [cmds-component cmds-one-line 2]])
+
+               (doall (for [{title :title cmds :cmds} (filter show-row? table)]
+                        ^{:key (hash cmds)}
+                        [:tr.row
+                         [:td.cmd-title (:text title)]
+                         [cmds-component cmds 1]]))]
+              ]]))
+   ])
 
 (defn root []
   (let [cc @cheatsheet]
     [:div.top
      [:input {:onChange #(swap! state assoc :search-text (-> %1 .-target .-value .toLowerCase))}]
      [:h1 (:title cc)]
-     (doall (for [box (doall (filter show-box? (:boxes cc)))]
+     (doall (for [box (filter show-box? (:boxes cc))]
        ^{:key (hash box)} [box-component box]))
      ]))
 

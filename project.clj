@@ -18,6 +18,8 @@
   :plugins [[lein-cljsbuild "1.0.2"]]
   :hooks [leiningen.cljsbuild]
 
+  :prep-tasks [["run" "generate-edn"]]
+
   :profiles {:dev {:dependencies [[midje "1.5.0"]]}
              :prod {:cljsbuild
                     {:builds

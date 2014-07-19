@@ -70,3 +70,12 @@ span, a {
 }
 
 */
+
+.cmd-title {
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.cmd {
+  display: inline-block;
+}

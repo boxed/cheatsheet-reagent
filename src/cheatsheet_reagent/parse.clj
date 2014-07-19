@@ -973,10 +973,8 @@ values."
   (let [box (parse-box-inner b)]
     (for [[section-list table] box]
       (let [[s1 s2 s3] section-list]
-        (if s3
-          (do
-            (assert (nil? s2))
-            [[(parse-section s1) (parse-cmds s3)] (parse-table table)])
+        (if (not (nil? s3))
+          [[(parse-section s1) nil (parse-cmds s3)] (parse-table table)]
           [(map parse-section section-list) (parse-table table)])))))
 
 (defn parse-cheatsheet []
@@ -988,7 +986,7 @@ values."
         {:title title
          :boxes (map parse-box [b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15 b16 b17 b18 b19])}))
 
-(defn -main []
+(defn generate-edn []
   (let [result (parse-cheatsheet)]
     (spit "resources/cheatsheet.edn" (with-out-str (fipp result)))
 ;    (spit "resources/cheatsheet.edn" (pr-str result))
