@@ -89,8 +89,9 @@
 
 (defn ^:export run []
   (GET "cheatsheet.edn" {:handler
-                         #(reset! cheatsheet %
-;                           (.-findElements OpenTip.)
+                         (fn [x]
+                           (reset! cheatsheet x)
+                           (js/window.setTimeout #(.findElements js/Opentip) 200)
                            )})
   (reagent/render-component [root]
                             (.-body js/document)))
