@@ -859,14 +859,14 @@ values."
                        (if (nil? m)
                          {:text (str cmd)}
                          {:text (str (:name m))
-                          :meta (-> m
-                                    (dissoc :inline)
-                                    (dissoc :name)
-                                    (dissoc :inline-arities)
-                                    (dissoc :tag)
-                                    (transform [:ns] str
-                                               [:arglists] str
-                                               [:protocol] str))
+                          :meta (transform m
+                                           [:ns] str
+                                           [:arglists] str
+                                           [:protocol] str
+                                           [:inline] dissoc
+                                           [:inline-arities] dissoc
+                                           [:name] dissoc
+                                           [:tag] dissoc)
                           }))))
          )))
 

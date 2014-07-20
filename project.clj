@@ -7,7 +7,7 @@
                  [org.clojure/clojurescript "0.0-2173"]
                  [reagent "0.4.2"]
                  [org.clojure/core.match "0.2.1"]
-                 [instar "1.0.5"]
+                 [instar "1.0.6"]
                  [fipp "0.4.3"]
                  [org.codehaus.jsr166-mirror/jsr166y "1.7.0"]
                  [cljs-ajax "0.2.6"]
