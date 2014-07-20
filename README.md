@@ -1,14 +1,12 @@
 # cheatsheet-reagent
 
-A Clojure library designed to ... well, that part is up to you.
+This lib has two parts:
 
-## Usage
+- Parse the clojure cheatsheet and output something more clojure-esque and also collect metadata. Outputs an edn file.
+- A reagent based ClojureScript frontend implementation
 
-FIXME
+## Run
 
-## License
+    lein run 8000
 
-Copyright © 2014 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+This will run the parse code, compile the ClojureScript, output the edn file and start a test webserver on port 8000 for trying it out.
