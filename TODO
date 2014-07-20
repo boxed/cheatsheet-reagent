@@ -1,0 +1,2 @@
+- When searching for "long", the entire literals section for long isn't shown
+  because "Long:" is marked as a cmd and the literals themselves are separate cmds.

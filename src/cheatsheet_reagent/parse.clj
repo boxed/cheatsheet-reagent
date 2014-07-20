@@ -859,13 +859,14 @@ values."
                        (if (nil? m)
                          {:text (str cmd)}
                          {:text (str (:name m))
-;;                           :meta (-> m
-;;                                     (dissoc :inline)
-;;                                     (dissoc :name)
-;;                                     (dissoc :inline-arities)
-;;                                     (dissoc :tag)
-;;                                     (transform [:ns] str
-;;                                                [:arglists] str))
+                          :meta (-> m
+                                    (dissoc :inline)
+                                    (dissoc :name)
+                                    (dissoc :inline-arities)
+                                    (dissoc :tag)
+                                    (transform [:ns] str
+                                               [:arglists] str
+                                               [:protocol] str))
                           }))))
          )))
 
@@ -988,6 +989,6 @@ values."
 
 (defn generate-edn []
   (let [result (parse-cheatsheet)]
-    (spit "resources/cheatsheet.edn" (with-out-str (fipp result)))
-;    (spit "resources/cheatsheet.edn" (pr-str result))
+;    (spit "resources/cheatsheet.edn" (with-out-str (fipp result)))
+    (spit "resources/cheatsheet.edn" (pr-str result))
 ))

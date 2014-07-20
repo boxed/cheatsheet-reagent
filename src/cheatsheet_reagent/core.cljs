@@ -3,6 +3,8 @@
             [ajax.core :refer [GET POST]]
             [instar.core :refer [transform]]))
 
+(enable-console-print!)
+
 (def cheatsheet (atom nil))
 
 (def state (atom {:search-text ""}))
@@ -28,10 +30,23 @@
 (defn show-box? [box]
   (not= 0 (count (filter show-section? box))))
 
+(defn add-meta-string [m cmd]
+  (if (nil? (:meta cmd))
+    m
+    (assoc
+      (assoc
+        m
+        :data-ot
+        (str "<table>"
+             (clojure.string/join (for [[k v] (:meta cmd)] (str "<tr><td>" (name k) "</td><td>" v "</td></tr>")))
+             "</table>"))
+      :data-ot-delay "0")))
+
+
 (defn cmd-component [cmd]
   (if (:url cmd)
-    [:a.cmd {:href (:url cmd)} (:text cmd)]
-    [:span.cmd (:text cmd)]))
+    [:a.cmd (add-meta-string {:href (:url cmd)} cmd) (:text cmd)]
+    [:span.cmd (add-meta-string {} cmd) (:text cmd)]))
 
 (defn cmds-component [cmds colSpan]
   [:td {:colSpan colSpan}
@@ -57,7 +72,7 @@
                (doall (for [{title :title cmds :cmds} (filter show-row? table)]
                         ^{:key (hash cmds)}
                         [:tr.row
-                         [:td.cmd-title (:text title)]
+                         [:th.cmd-title (:text title)]
                          [cmds-component cmds 1]]))]
               ]]))
    ])
@@ -65,13 +80,17 @@
 (defn root []
   (let [cc @cheatsheet]
     [:div.top
-     [:input {:onChange #(swap! state assoc :search-text (-> %1 .-target .-value .toLowerCase))}]
      [:h1 (:title cc)]
+     [:input {:onChange #(swap! state assoc :search-text (-> %1 .-target .-value .toLowerCase))
+              :placeholder "Search..."}]
      (doall (for [box (filter show-box? (:boxes cc))]
        ^{:key (hash box)} [box-component box]))
      ]))
 
 (defn ^:export run []
-  (GET "cheatsheet.edn" {:handler #(reset! cheatsheet %)})
+  (GET "cheatsheet.edn" {:handler
+                         #(reset! cheatsheet %
+;                           (.-findElements OpenTip.)
+                           )})
   (reagent/render-component [root]
                             (.-body js/document)))
